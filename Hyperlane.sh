@@ -103,6 +103,7 @@ install_and_start_node() {
     docker run -d \
         --name "$HYPERLANE_CONTAINER_NAME" \
         --mount type=bind,source="$DB_DIR",target=/hyperlane_db_base \
+        --restart=always \  # 设置开机自启
         gcr.io/abacus-labs-dev/hyperlane-agent:agents-v1.0.0 \
         ./validator \
         --db /hyperlane_db_base \
@@ -142,6 +143,20 @@ uninstall_hyperlane() {
     echo "卸载完成（未移除依赖）。"
 }
 
+# 设置容器开机自启
+set_auto_restart() {
+    if docker ps -a | grep -q "$HYPERLANE_CONTAINER_NAME"; then
+        echo "正在设置 Hyperlane 容器开机自启..."
+        docker update --restart=always "$HYPERLANE_CONTAINER_NAME" || {
+            echo "设置开机自启失败！"
+            exit 1
+        }
+        echo "Hyperlane 容器已设置为开机自启。"
+    else
+        echo "Hyperlane 容器未运行，无法设置开机自启！"
+    fi
+}
+
 # 主菜单
 main_menu() {
     while true; do
@@ -149,14 +164,16 @@ main_menu() {
         echo "1) 安装并启动节点"
         echo "2) 查看容器日志"
         echo "3) 卸载节点 (不卸载依赖)"
-        echo "4) 退出脚本"
+        echo "4) 设置开机自启"
+        echo "5) 退出脚本"
         echo "====================================================="
         read -p "请输入选项: " choice
         case $choice in
             1) install_and_start_node ;;
             2) view_container_log ;;
             3) uninstall_hyperlane ;;
-            4) exit 0 ;;
+            4) set_auto_restart ;;
+            5) exit 0 ;;
             *) echo "无效选项，请重试！" ;;
         esac
     done
