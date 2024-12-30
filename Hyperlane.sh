@@ -103,7 +103,7 @@ install_and_start_node() {
     docker run -d \
         --name "$HYPERLANE_CONTAINER_NAME" \
         --mount type=bind,source="$DB_DIR",target=/hyperlane_db_base \
-        --restart=always \  # 设置开机自启
+        --restart=always \
         gcr.io/abacus-labs-dev/hyperlane-agent:agents-v1.0.0 \
         ./validator \
         --db /hyperlane_db_base \
